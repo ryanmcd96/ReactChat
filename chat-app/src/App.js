@@ -7,7 +7,7 @@ import 'firebase/auth';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 firebase.initializeApp({
   apiKey: "AIzaSyAZN5o0SBtAj3mc9H2fMqBvc6TgTFGBxqo",
@@ -28,8 +28,10 @@ function App() {
   return (
     <div className="App">
       <header>
-      
+      <h1>⚛️🔥💬Chat</h1>
+      <SignOut />
       </header>
+
       <section>
         {user ? <ChatRoom /> : <SignIn />}
       </section>
@@ -44,19 +46,25 @@ function SignIn() {
   }
 
   return (
-    <button onClick={signInWithGoogle}> Sign in with Google</button>
+    <>
+    <button className="sign-in" onClick={signInWithGoogle}> Sign in with Google</button>
+    <h2>Violation of guidelines will result in a ban</h2>
+    <h2>Created by: Ryan McDonald</h2>
+    </>
   )
 }
 
 function SignOut() {
   return auth.currentUser && (
 
-    <button onClick={() => auth.signOut()}>Sign Out</button>
+    <button className ="sign-out" onClick={() => auth.signOut()}>Sign Out</button>
 
   )
 }
 
 function ChatRoom() {
+
+  const dummy = useRef();
 
   const messagesRef = firestore.collection('messages');
   const query = messagesRef.orderBy('createdAt').limit(25);
@@ -65,33 +73,55 @@ function ChatRoom() {
 
   const [formValue, setFormValue] = useState('');
 
+  const sendMessage = async(e) => {
+
+    e.preventDefault();
+
+    const { uid, photoURL } = auth.currentUser;
+
+    await messagesRef.add({
+        text: formValue,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        uid,
+        photoURL
+    })
+
+    setFormValue('');
+
+    dummy.current.scrollIntoView({ behavior: 'smooth' });
+
+  }
+
   return (<>
-    <div>
+    <main>
     
       {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
-    </div>
+
+      <span ref={dummy}></span>
+
+    </main>
 
     <form onSubmit={sendMessage}>
-      <input value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+      <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="Message here" />
 
-      <button type="submit">🕊️</button>
+      <button type="submit" disabled={!formValue}>🕊️</button>
 
     </form>
     </>)
 }
 
 function ChatMessage(props) {
-  const { text, uid} = props.message;
+  const { text, uid, photoURL} = props.message;
 
   const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
 
- return (
+ return (<>
    <div className={`message ${messageClass}`}>
-     <img src={photoURL} />
+     <img src={photoURL || 'https://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?d=identicon'} />
  <p>{text}</p>
  </div>
 
- ) 
+ </>) 
 }
 
 
