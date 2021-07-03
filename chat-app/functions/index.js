@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const functions = require('firebase-functions');
 const Filter = require('bad-words');
 
 const admin = require('firebase-admin');
@@ -10,8 +10,8 @@ exports.detectEvilUsers = functions.firestore
 .document('messages/{msgId}')
 .onCreate(async (doc, ctx) => {
 
-    const filer = new Filter();
-    const {text, uid } = doc.data();
+    const filter = new Filter();
+    const { text, uid } = doc.data();
 
     if (filter.isProfane(text)) {
 
